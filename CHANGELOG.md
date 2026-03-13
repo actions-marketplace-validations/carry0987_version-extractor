@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/carry0987/version-extractor/compare/v1.1.0...v1.2.0) (2026-03-13)
+
+
+### Features
+
+* update action.yml ([909ff91](https://github.com/carry0987/version-extractor/commit/909ff9116676e813afec86c12139849e31167024))
+
 ## [1.1.0](https://github.com/carry0987/version-extractor/compare/v1.0.0...v1.1.0) (2026-03-13)
 
 
