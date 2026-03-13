@@ -21,12 +21,14 @@ A GitHub Action that extracts and parses semantic versions from tags, refs, or m
 | `fallback-ref` | No | `${{ github.ref_name }}` | Fallback ref name when `tag` is empty |
 | `prefix` | No | `v` | Version prefix to strip |
 | `strict` | No | `false` | Whether to strictly validate semver format |
+| `extract-pattern` | No | `''` | Regex to extract version from raw input (first capture group is used if present) |
+| `fail-on-error` | No | `true` | Whether to fail the action when version extraction fails |
 
 ## Outputs
 
 | Output | Description | Example |
-|--------|-------------|---------|
-| `version` | Full version string | `1.3.0` |
+|--------|-------------|---------|| `found` | Whether a valid version was found | `true` / `false` |
+| `source` | The raw input string before any processing | `v1.3.0` || `version` | Full version string | `1.3.0` |
 | `major` | Major version number | `1` |
 | `minor` | Minor version number | `3` |
 | `patch` | Patch version number | `0` |
@@ -94,6 +96,34 @@ jobs:
 
 - if: steps.version.outputs.is-prerelease == 'true'
   run: echo "This is a prerelease!"
+```
+
+### Extract version from text with regex
+
+Use `extract-pattern` to pull a version out of arbitrary text (e.g. commit messages):
+
+```yaml
+- uses: carry0987/version-extractor@v1
+  id: version
+  with:
+    tag: 'chore: release v1.2.0'
+    extract-pattern: 'v?(\d+\.\d+\.\d+)'
+# outputs.version → 1.2.0
+```
+
+### Soft failure mode
+
+Set `fail-on-error` to `false` to emit a warning instead of failing the action when no version is found:
+
+```yaml
+- uses: carry0987/version-extractor@v1
+  id: version
+  with:
+    tag: 'not-a-version'
+    fail-on-error: 'false'
+
+- if: steps.version.outputs.found == 'true'
+  run: echo "Version ${{ steps.version.outputs.version }}"
 ```
 
 ### Non-strict mode (default)
