@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/carry0987/version-extractor/compare/v1.0.0...v1.1.0) (2026-03-13)
+
+
+### Features
+
+* update README.md ([f29e55c](https://github.com/carry0987/version-extractor/commit/f29e55ce1ba6b9a43c795c2ea0cb014b791e89fc))
+
 ## 1.0.0 (2026-03-13)
 
 
