@@ -15999,6 +15999,14 @@ function error(message, properties = {}) {
 	issueCommand("error", toCommandProperties(properties), message instanceof Error ? message.toString() : message);
 }
 /**
+* Adds a warning issue
+* @param message warning issue message. Errors will be converted to string via toString()
+* @param properties optional properties to add to the annotation.
+*/
+function warning(message, properties = {}) {
+	issueCommand("warning", toCommandProperties(properties), message instanceof Error ? message.toString() : message);
+}
+/**
 * Writes info to log with console.log.
 * @param message info message
 */
@@ -17351,6 +17359,16 @@ function stripPrefix(raw, prefix) {
 	return raw;
 }
 /**
+* Extract a version string from arbitrary text using a regex pattern.
+* If pattern has a capture group, the first group is used; otherwise the full match.
+* Returns null if no match is found.
+*/
+function extractVersion(raw, pattern) {
+	const match = new RegExp(pattern).exec(raw);
+	if (!match) return null;
+	return match[1] ?? match[0];
+}
+/**
 * Parse a version string into semver components.
 * If strict is true, only valid semver strings are accepted.
 * If strict is false, semver.coerce is used as a fallback.
@@ -17386,13 +17404,36 @@ function run() {
 		const fallbackRef = getInput("fallback-ref");
 		const prefix = getInput("prefix");
 		const strict = getBooleanInput("strict");
+		const extractPattern = getInput("extract-pattern");
+		const failOnError = getBooleanInput("fail-on-error");
 		const raw = tag || fallbackRef;
 		if (!raw) throw new Error("No version source: both \"tag\" and \"fallback-ref\" are empty");
 		info(`Raw version input: ${raw}`);
-		const stripped = stripPrefix(raw, prefix);
+		setOutput("source", raw);
+		let versionCandidate = raw;
+		if (extractPattern) {
+			const extracted = extractVersion(raw, extractPattern);
+			if (!extracted) {
+				setOutput("found", "false");
+				const msg = `No version found in "${raw}" using pattern "${extractPattern}"`;
+				if (failOnError) throw new Error(msg);
+				warning(msg);
+				return;
+			}
+			versionCandidate = extracted;
+			info(`Extracted version candidate: ${versionCandidate}`);
+		}
+		const stripped = stripPrefix(versionCandidate, prefix);
 		info(`After stripping prefix "${prefix}": ${stripped}`);
 		const parsed = parseVersion(stripped, strict);
-		if (!parsed) throw new Error(`Failed to parse "${stripped}" as a semver version${strict ? " (strict mode)" : ""}`);
+		if (!parsed) {
+			setOutput("found", "false");
+			const msg = `Failed to parse "${stripped}" as a semver version${strict ? " (strict mode)" : ""}`;
+			if (failOnError) throw new Error(msg);
+			warning(msg);
+			return;
+		}
+		setOutput("found", "true");
 		setOutput("version", parsed.version);
 		setOutput("major", parsed.major.toString());
 		setOutput("minor", parsed.minor.toString());

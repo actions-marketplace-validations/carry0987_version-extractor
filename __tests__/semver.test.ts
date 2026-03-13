@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseVersion, stripPrefix } from '../src/semver.js';
+import { extractVersion, parseVersion, stripPrefix } from '../src/semver.js';
 
 describe('stripPrefix', () => {
     it('strips "v" prefix', () => {
@@ -84,5 +84,35 @@ describe('parseVersion', () => {
         it('returns null for total garbage even in non-strict', () => {
             expect(parseVersion('hello-world', false)).toBeNull();
         });
+    });
+});
+
+describe('extractVersion', () => {
+    it('extracts version with capture group', () => {
+        expect(extractVersion('Bump to v1.2.0', 'v(\\d+\\.\\d+\\.\\d+)')).toBe('1.2.0');
+    });
+
+    it('extracts version without capture group (full match)', () => {
+        expect(extractVersion('Bump to v1.2.0', 'v\\d+\\.\\d+\\.\\d+')).toBe('v1.2.0');
+    });
+
+    it('extracts from "chore: release v1.2.0"', () => {
+        expect(extractVersion('chore: release v1.2.0', 'v?(\\d+\\.\\d+\\.\\d+)')).toBe('1.2.0');
+    });
+
+    it('extracts prerelease version', () => {
+        expect(extractVersion('Release v2.0.0-beta.1', 'v?(\\d+\\.\\d+\\.\\d+(?:-[\\w.]+)?)')).toBe('2.0.0-beta.1');
+    });
+
+    it('returns null when no match', () => {
+        expect(extractVersion('no version here', '\\d+\\.\\d+\\.\\d+')).toBeNull();
+    });
+
+    it('extracts with strict Bump format', () => {
+        expect(extractVersion('Bump to v1.2.0', '^Bump to v(\\d+\\.\\d+\\.\\d+)$')).toBe('1.2.0');
+    });
+
+    it('returns null when strict Bump format does not match', () => {
+        expect(extractVersion('chore: Bump to v1.2.0', '^Bump to v(\\d+\\.\\d+\\.\\d+)$')).toBeNull();
     });
 });

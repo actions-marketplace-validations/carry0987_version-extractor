@@ -1,5 +1,5 @@
 import * as core from '@actions/core';
-import { parseVersion, stripPrefix } from './semver.js';
+import { extractVersion, parseVersion, stripPrefix } from './semver.js';
 
 function run(): void {
     try {
@@ -8,6 +8,8 @@ function run(): void {
         const fallbackRef = core.getInput('fallback-ref');
         const prefix = core.getInput('prefix');
         const strict = core.getBooleanInput('strict');
+        const extractPattern = core.getInput('extract-pattern');
+        const failOnError = core.getBooleanInput('fail-on-error');
 
         // --- Determine raw version source ---
         const raw = tag || fallbackRef;
@@ -16,18 +18,39 @@ function run(): void {
         }
 
         core.info(`Raw version input: ${raw}`);
+        core.setOutput('source', raw);
+
+        // --- Extract version from text (if pattern provided) ---
+        let versionCandidate = raw;
+        if (extractPattern) {
+            const extracted = extractVersion(raw, extractPattern);
+            if (!extracted) {
+                core.setOutput('found', 'false');
+                const msg = `No version found in "${raw}" using pattern "${extractPattern}"`;
+                if (failOnError) throw new Error(msg);
+                core.warning(msg);
+                return;
+            }
+            versionCandidate = extracted;
+            core.info(`Extracted version candidate: ${versionCandidate}`);
+        }
 
         // --- Strip prefix ---
-        const stripped = stripPrefix(raw, prefix);
+        const stripped = stripPrefix(versionCandidate, prefix);
         core.info(`After stripping prefix "${prefix}": ${stripped}`);
 
         // --- Parse semver ---
         const parsed = parseVersion(stripped, strict);
         if (!parsed) {
-            throw new Error(`Failed to parse "${stripped}" as a semver version${strict ? ' (strict mode)' : ''}`);
+            core.setOutput('found', 'false');
+            const msg = `Failed to parse "${stripped}" as a semver version${strict ? ' (strict mode)' : ''}`;
+            if (failOnError) throw new Error(msg);
+            core.warning(msg);
+            return;
         }
 
         // --- Set outputs ---
+        core.setOutput('found', 'true');
         core.setOutput('version', parsed.version);
         core.setOutput('major', parsed.major.toString());
         core.setOutput('minor', parsed.minor.toString());

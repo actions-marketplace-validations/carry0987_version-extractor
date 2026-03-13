@@ -1,7 +1,6 @@
 name: Version Extractor
 description: >
   Extract and parse a semantic version from a tag, ref, or manual input.
-  Provides the full version string and individual semver components.
 branding:
   icon: 'book'
   color: 'blue'
@@ -23,8 +22,20 @@ inputs:
     description: 'Whether to strictly validate semver format'
     required: false
     default: 'false'
+  extract-pattern:
+    description: 'Regex to extract version from raw input (first capture group is used if present)'
+    required: false
+    default: ''
+  fail-on-error:
+    description: 'Whether to fail the action when version extraction fails'
+    required: false
+    default: 'true'
 
 outputs:
+  found:
+    description: 'Whether a valid version was found (true/false)'
+  source:
+    description: 'The raw input string before any processing'
   version:
     description: 'Full version string (e.g. 1.3.0)'
   major:

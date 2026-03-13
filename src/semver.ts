@@ -21,6 +21,18 @@ export function stripPrefix(raw: string, prefix: string): string {
 }
 
 /**
+ * Extract a version string from arbitrary text using a regex pattern.
+ * If pattern has a capture group, the first group is used; otherwise the full match.
+ * Returns null if no match is found.
+ */
+export function extractVersion(raw: string, pattern: string): string | null {
+    const regex = new RegExp(pattern);
+    const match = regex.exec(raw);
+    if (!match) return null;
+    return match[1] ?? match[0];
+}
+
+/**
  * Parse a version string into semver components.
  * If strict is true, only valid semver strings are accepted.
  * If strict is false, semver.coerce is used as a fallback.
