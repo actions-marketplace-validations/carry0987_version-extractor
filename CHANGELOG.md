@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/carry0987/version-extractor/compare/v1.5.0...v1.6.0) (2026-03-20)
+
+
+### Features
+
+* update dist ([3aa3700](https://github.com/carry0987/version-extractor/commit/3aa3700a1428335a7c01233e3acb2a7f75f90164))
+
 ## [1.5.0](https://github.com/carry0987/version-extractor/compare/v1.4.0...v1.5.0) (2026-03-13)
 
 
